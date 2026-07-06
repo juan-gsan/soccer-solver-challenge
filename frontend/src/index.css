@@ -1,0 +1,27 @@
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  background: #0f172a;
+  color: #f8fafc;
+}
+
+.landing {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 0.5rem;
+}
+
+.landing h1 {
+  font-size: 2.5rem;
+  color: #22c55e;
+  margin: 0;
+}
+
+.status {
+  font-size: 0.9rem;
+  color: #94a3b8;
+}
