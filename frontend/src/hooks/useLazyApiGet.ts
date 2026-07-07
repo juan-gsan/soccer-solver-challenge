@@ -20,9 +20,7 @@ export function useLazyApiGet<T>(): UseLazyApiGetResult<T> {
       const result = await apiGet<T>(path);
       setData(result);
     } catch (err: unknown) {
-      setError(
-        err instanceof ApiError ? err.message : "Error al cargar los datos",
-      );
+      setError(err instanceof ApiError ? err.message : "Error loading data");
       setData(null);
     } finally {
       setLoading(false);

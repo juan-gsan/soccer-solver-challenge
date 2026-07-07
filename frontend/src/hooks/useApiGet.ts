@@ -32,9 +32,7 @@ export function useApiGet<T>(path: string | null): UseApiGetResult<T> {
       })
       .catch((err: unknown): void => {
         if (currentRequest !== requestId.current) return;
-        setError(
-          err instanceof ApiError ? err.message : "Error al cargar los datos",
-        );
+        setError(err instanceof ApiError ? err.message : "Error loading data");
         setData(null);
       })
       .finally((): void => {
