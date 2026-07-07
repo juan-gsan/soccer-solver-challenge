@@ -123,15 +123,11 @@ I have created tooltips always visible in the chart and comparison views to expl
 - Calibrate the ±5 threshold in `classify_trend` against actual
   historical variance instead of a fixed value.
 
-- Add richer metrics (xG, passes, shots) if a dataset with those fields is
-  available.
-
-- Debounce the player search input (`PlayerPicker`) so it doesn't fire a
-  request on every keystroke.
+- Add richer metrics like xG, passes, shots...
 
 - End-to-end tests (Playwright/Cypress); today there are only unitary tests.
 
-- Move to a real database, I am using a csv file for this challenge, we
+- Move to a real database, I am using a csv file for this challenge, we will
   need to connect to a real DB, Clickhouse would be a good option in my opinion.
 
 - Make the selection for comparison between players more selective, for example,
