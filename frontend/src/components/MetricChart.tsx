@@ -1,3 +1,4 @@
+import type { JSX } from "react";
 import {
   CartesianGrid,
   Legend,
@@ -8,7 +9,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import type { SeasonEvolution } from "../types/evolution";
+import type { SeasonEvolution, Trend } from "../types/evolution";
 import { metricLabel, TREND_COLORS } from "../constants/metrics";
 import TrendBadge from "./TrendBadge";
 
@@ -22,17 +23,29 @@ interface ChartRow {
   player: number;
   positionAverage: number | null;
   percentile: number | null;
-  trend: string | null;
+  trend: Trend | null;
+}
+
+interface PlayerDotProps {
+  cx?: number;
+  cy?: number;
+  payload?: ChartRow;
+}
+
+interface ChartTooltipProps {
+  active?: boolean;
+  payload?: Array<{ payload: ChartRow }>;
+  label?: string;
 }
 
 function buildChartData(
   metric: string,
   seasons: SeasonEvolution[],
 ): ChartRow[] {
-  return seasons.map((s) => {
-    const point = s.metrics.find((m) => m.metric === metric);
+  return seasons.map((season): ChartRow => {
+    const point = season.metrics.find((m) => m.metric === metric);
     return {
-      season: s.season,
+      season: season.season,
       player: point?.player_value ?? 0,
       positionAverage: point?.position_average ?? null,
       percentile: point?.percentile ?? null,
@@ -41,8 +54,7 @@ function buildChartData(
   });
 }
 
-function PlayerDot(props: { cx?: number; cy?: number; payload?: ChartRow }) {
-  const { cx, cy, payload } = props;
+function PlayerDot({ cx, cy, payload }: PlayerDotProps): JSX.Element | null {
   if (cx === undefined || cy === undefined || !payload) return null;
   const color = payload.trend ? TREND_COLORS[payload.trend] : "#22c55e";
   return (
@@ -61,19 +73,16 @@ function ChartTooltip({
   active,
   payload,
   label,
-}: {
-  active?: boolean;
-  payload?: Array<{ payload: ChartRow }>;
-  label?: string;
-}) {
-  if (!active || !payload || payload.length === 0) return null;
-  const row = payload[0].payload;
+}: ChartTooltipProps): JSX.Element | null {
+  const firstEntry = payload?.[0];
+  if (!active || !firstEntry) return null;
+  const row = firstEntry.payload;
   return (
     <div className="chart-tooltip">
       <p className="chart-tooltip__season">{label}</p>
       <p>Player: {row.player}</p>
       <p>
-        Position Average:{" "}
+        Average:{" "}
         {row.positionAverage !== null ? row.positionAverage.toFixed(1) : "—"}
       </p>
       {row.percentile !== null && <p>Percentile: {row.percentile}</p>}
@@ -81,9 +90,9 @@ function ChartTooltip({
   );
 }
 
-function MetricChart({ metric, seasons }: Props) {
+function MetricChart({ metric, seasons }: Props): JSX.Element {
   const data = buildChartData(metric, seasons);
-  const lastPoint = data[data.length - 1];
+  const lastPoint: ChartRow | undefined = data[data.length - 1];
 
   return (
     <div className="metric-chart">
@@ -112,7 +121,7 @@ function MetricChart({ metric, seasons }: Props) {
           <Line
             type="monotone"
             dataKey="positionAverage"
-            name="Position Average"
+            name="Average"
             stroke="#64748b"
             strokeWidth={2}
             strokeDasharray="5 5"

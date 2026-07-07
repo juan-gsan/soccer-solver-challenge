@@ -1,81 +1,64 @@
+import type { JSX } from "react";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { apiGet, ApiError } from "../api/client";
+import { useApiGet } from "../hooks/useApiGet";
+import { usePlayerEvolution } from "../hooks/usePlayerEvolution";
 import type { PlayerSearchResult } from "../types/player";
-import type { PlayerEvolutionResponse } from "../types/evolution";
 import PlayerPicker from "../components/PlayerPicker";
 import MetricSelector from "../components/MetricSelector";
 import ComparisonChart from "../components/ComparisonChart";
 
-const DEFAULT_METRIC_COUNT = 1;
+const DEFAULT_METRIC_COUNT = 3;
 
-function ComparePage() {
+function ComparePage(): JSX.Element {
   const [searchParams] = useSearchParams();
 
   const [playerA, setPlayerA] = useState<PlayerSearchResult | null>(null);
   const [playerB, setPlayerB] = useState<PlayerSearchResult | null>(null);
-
-  const [evolutionA, setEvolutionA] = useState<PlayerEvolutionResponse | null>(
-    null,
-  );
-  const [evolutionB, setEvolutionB] = useState<PlayerEvolutionResponse | null>(
-    null,
-  );
-
   const [selectedMetrics, setSelectedMetrics] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const preselectedId = searchParams.get("playerA");
-    if (!preselectedId || playerA) return;
-    apiGet<PlayerSearchResult>(`/players/${preselectedId}`)
-      .then(setPlayerA)
-      .catch(() => {});
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams]);
+  const preselectedId: string | null = searchParams.get("playerA");
+  const { data: preselectedPlayer } = useApiGet<PlayerSearchResult>(
+    !playerA && preselectedId ? `/players/${preselectedId}` : null,
+  );
+  useEffect((): void => {
+    if (preselectedPlayer) setPlayerA(preselectedPlayer);
+  }, [preselectedPlayer]);
 
-  useEffect(() => {
-    if (!playerA || !playerB) return;
-    setLoading(true);
-    setError(null);
-    Promise.all([
-      apiGet<PlayerEvolutionResponse>(
-        `/players/${playerA.player_id}/evolution`,
-      ),
-      apiGet<PlayerEvolutionResponse>(
-        `/players/${playerB.player_id}/evolution`,
-      ),
-    ])
-      .then(([dataA, dataB]) => {
-        setEvolutionA(dataA);
-        setEvolutionB(dataB);
-        setSelectedMetrics(
-          dataA.available_metrics.slice(0, DEFAULT_METRIC_COUNT),
-        );
-      })
-      .catch((err) => {
-        setError(
-          err instanceof ApiError ? err.message : "Error loading comparison",
-        );
-      })
-      .finally(() => setLoading(false));
-  }, [playerA, playerB]);
+  const {
+    data: evolutionA,
+    loading: loadingA,
+    error: errorA,
+  } = usePlayerEvolution(playerA?.player_id);
+  const {
+    data: evolutionB,
+    loading: loadingB,
+    error: errorB,
+  } = usePlayerEvolution(playerB?.player_id);
+  const loading: boolean = loadingA || loadingB;
+  const error: string | null = errorA ?? errorB;
 
-  function toggleMetric(metric: string) {
-    setSelectedMetrics((prev) =>
+  useEffect((): void => {
+    if (evolutionA)
+      setSelectedMetrics(
+        evolutionA.available_metrics.slice(0, DEFAULT_METRIC_COUNT),
+      );
+  }, [evolutionA]);
+
+  function toggleMetric(metric: string): void {
+    setSelectedMetrics((prev: string[]) =>
       prev.includes(metric)
-        ? prev.filter((m) => m !== metric)
+        ? prev.filter((m: string) => m !== metric)
         : [...prev, metric],
     );
   }
 
   return (
     <div className="compare-page">
-      <h1>Player Comparison</h1>
+      <h1>Players Comparison</h1>
       <p className="evolution-page__note">
         Compares the history of two different players based on normalised
-        percent by season for the same position.
+        percentile by season for the same position.
       </p>
 
       <div className="compare-pickers">
@@ -83,23 +66,17 @@ function ComparePage() {
           label="Player A"
           selected={playerA}
           onSelect={setPlayerA}
-          onClear={() => {
-            setPlayerA(null);
-            setEvolutionA(null);
-          }}
+          onClear={(): void => setPlayerA(null)}
         />
         <PlayerPicker
           label="Player B"
           selected={playerB}
           onSelect={setPlayerB}
-          onClear={() => {
-            setPlayerB(null);
-            setEvolutionB(null);
-          }}
+          onClear={(): void => setPlayerB(null)}
         />
       </div>
 
-      {loading && <p className="status-message">Loading comparison...</p>}
+      {loading && <p className="status-message">Loading...</p>}
       {error && <p className="error">{error}</p>}
 
       {evolutionA && evolutionB && (
@@ -111,7 +88,7 @@ function ComparePage() {
           />
 
           <div className="charts-grid">
-            {selectedMetrics.map((metric) => (
+            {selectedMetrics.map((metric: string) => (
               <ComparisonChart
                 key={metric}
                 metric={metric}

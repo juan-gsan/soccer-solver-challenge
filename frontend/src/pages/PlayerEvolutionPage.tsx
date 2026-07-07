@@ -1,49 +1,36 @@
+import type { JSX } from "react";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { apiGet, ApiError } from "../api/client";
-import type { PlayerEvolutionResponse } from "../types/evolution";
+import { usePlayerEvolution } from "../hooks/usePlayerEvolution";
 import MetricChart from "../components/MetricChart";
 import MetricSelector from "../components/MetricSelector";
 
-const DEFAULT_METRIC_COUNT = 1;
+const DEFAULT_METRIC_COUNT = 3;
 
-function PlayerEvolutionPage() {
-  const { playerId } = useParams<{ playerId: string }>();
-  const [data, setData] = useState<PlayerEvolutionResponse | null>(null);
+interface RouteParams extends Record<string, string | undefined> {
+  playerId: string;
+}
+
+function PlayerEvolutionPage(): JSX.Element | null {
+  const { playerId } = useParams<RouteParams>();
+  const { data, loading, error } = usePlayerEvolution(playerId);
   const [selectedMetrics, setSelectedMetrics] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!playerId) return;
-    setLoading(true);
-    setError(null);
-    apiGet<PlayerEvolutionResponse>(`/players/${playerId}/evolution`)
-      .then((response) => {
-        setData(response);
-        setSelectedMetrics(
-          response.available_metrics.slice(0, DEFAULT_METRIC_COUNT),
-        );
-      })
-      .catch((err) => {
-        setError(
-          err instanceof ApiError
-            ? err.message
-            : "Error loading player evolution",
-        );
-      })
-      .finally(() => setLoading(false));
-  }, [playerId]);
+  useEffect((): void => {
+    if (data) {
+      setSelectedMetrics(data.available_metrics.slice(0, DEFAULT_METRIC_COUNT));
+    }
+  }, [data]);
 
-  function toggleMetric(metric: string) {
-    setSelectedMetrics((prev) =>
+  function toggleMetric(metric: string): void {
+    setSelectedMetrics((prev: string[]) =>
       prev.includes(metric)
-        ? prev.filter((m) => m !== metric)
+        ? prev.filter((m: string) => m !== metric)
         : [...prev, metric],
     );
   }
 
-  if (loading) return <p className="status-message">Cargando evolución...</p>;
+  if (loading) return <p className="status-message">Loading...</p>;
   if (error) return <p className="error">{error}</p>;
   if (!data) return null;
 
@@ -91,7 +78,7 @@ function PlayerEvolutionPage() {
       />
 
       <div className="charts-grid">
-        {selectedMetrics.map((metric) => (
+        {selectedMetrics.map((metric: string) => (
           <MetricChart key={metric} metric={metric} seasons={data.seasons} />
         ))}
       </div>

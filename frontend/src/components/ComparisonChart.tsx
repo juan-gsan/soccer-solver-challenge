@@ -1,3 +1,4 @@
+import type { JSX } from "react";
 import {
   CartesianGrid,
   Legend,
@@ -25,6 +26,14 @@ interface ComparisonRow {
   playerB: number | null;
 }
 
+interface ComparisonTooltipProps {
+  active?: boolean;
+  payload?: Array<{ payload: ComparisonRow }>;
+  label?: string;
+  nameA: string;
+  nameB: string;
+}
+
 function buildComparisonData(
   metric: string,
   seasonsA: SeasonEvolution[],
@@ -36,7 +45,7 @@ function buildComparisonData(
   ]);
   const sortedSeasons = Array.from(allSeasons).sort();
 
-  return sortedSeasons.map((season) => {
+  return sortedSeasons.map((season): ComparisonRow => {
     const pointA = seasonsA
       .find((s) => s.season === season)
       ?.metrics.find((m) => m.metric === metric);
@@ -66,31 +75,32 @@ function ComparisonTooltip({
   label,
   nameA,
   nameB,
-}: {
-  active?: boolean;
-  payload?: Array<{ payload: ComparisonRow }>;
-  label?: string;
-  nameA: string;
-  nameB: string;
-}) {
-  if (!active || !payload || payload.length === 0) return null;
-  const row = payload[0].payload;
+}: ComparisonTooltipProps): JSX.Element | null {
+  const firstEntry = payload?.[0];
+  if (!active || !firstEntry) return null;
+  const row = firstEntry.payload;
   return (
     <div className="chart-tooltip">
       <p className="chart-tooltip__season">{label}</p>
       <p>
         {nameA}:{" "}
-        {row.playerA !== null ? `percent ${row.playerA}` : "No data available"}
+        {row.playerA !== null ? `percentile ${row.playerA}` : "No data"}
       </p>
       <p>
         {nameB}:{" "}
-        {row.playerB !== null ? `percent ${row.playerB}` : "No data available"}
+        {row.playerB !== null ? `percentile ${row.playerB}` : "No data"}
       </p>
     </div>
   );
 }
 
-function ComparisonChart({ metric, nameA, nameB, seasonsA, seasonsB }: Props) {
+function ComparisonChart({
+  metric,
+  nameA,
+  nameB,
+  seasonsA,
+  seasonsB,
+}: Props): JSX.Element {
   const data = buildComparisonData(metric, seasonsA, seasonsB);
   const consistencyA = consistencyScore(data.map((d) => d.playerA));
   const consistencyB = consistencyScore(data.map((d) => d.playerB));
@@ -100,7 +110,7 @@ function ComparisonChart({ metric, nameA, nameB, seasonsA, seasonsB }: Props) {
       <div className="metric-chart__header">
         <h3>{metricLabel(metric)}</h3>
         <span className="comparison-scale-note">
-          scale: percent vs. same position
+          Scale: percentile vs. position
         </span>
       </div>
       <ResponsiveContainer width="100%" height={260}>
@@ -135,8 +145,8 @@ function ComparisonChart({ metric, nameA, nameB, seasonsA, seasonsB }: Props) {
       </ResponsiveContainer>
       {(consistencyA !== null || consistencyB !== null) && (
         <p className="consistency-note">
-          Consistency (percent deviation, less = more constant): {nameA}{" "}
-          {consistencyA ?? "—"} · {nameB} {consistencyB ?? "—"}
+          Consistency (percentile deviation, less deviation = more consistency):{" "}
+          {nameA} {consistencyA ?? "—"} · {nameB} {consistencyB ?? "—"}
         </p>
       )}
     </div>

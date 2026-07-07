@@ -1,9 +1,11 @@
+export type Trend = "improved" | "declined" | "stable";
+
 export interface MetricPoint {
   metric: string;
   player_value: number;
   position_average: number | null;
   percentile: number | null;
-  trend: "improved" | "declined" | "stable" | null;
+  trend: Trend | null;
 }
 
 export interface SeasonEvolution {

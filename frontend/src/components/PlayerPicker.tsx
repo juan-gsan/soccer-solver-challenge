@@ -1,5 +1,7 @@
+import type { ChangeEvent, JSX } from "react";
 import { useState } from "react";
-import { apiGet, ApiError } from "../api/client";
+import { useApiGet } from "../hooks/useApiGet";
+import { useDebouncedValue } from "../hooks/useDebouncedValue";
 import type { PlayerSearchResponse, PlayerSearchResult } from "../types/player";
 
 interface Props {
@@ -9,30 +11,29 @@ interface Props {
   onClear: () => void;
 }
 
-function PlayerPicker({ label, selected, onSelect, onClear }: Props) {
-  const [query, setQuery] = useState("");
-  const [suggestions, setSuggestions] = useState<PlayerSearchResult[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+function PlayerPicker({
+  label,
+  selected,
+  onSelect,
+  onClear,
+}: Props): JSX.Element {
+  const [query, setQuery] = useState<string>("");
+  const debouncedQuery: string = useDebouncedValue(query, 300);
+  const searchPath: string | null =
+    debouncedQuery.trim().length >= 2
+      ? `/players/search?name=${encodeURIComponent(debouncedQuery.trim())}&limit=5`
+      : null;
 
-  async function handleChange(value: string) {
-    setQuery(value);
-    if (value.trim().length < 2) {
-      setSuggestions([]);
-      return;
-    }
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await apiGet<PlayerSearchResponse>(
-        `/players/search?name=${encodeURIComponent(value.trim())}&limit=5`,
-      );
-      setSuggestions(data.results);
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Error searching");
-    } finally {
-      setLoading(false);
-    }
+  const { data, loading, error } = useApiGet<PlayerSearchResponse>(searchPath);
+  const suggestions: PlayerSearchResult[] = data?.results ?? [];
+
+  function handleQueryChange(event: ChangeEvent<HTMLInputElement>): void {
+    setQuery(event.target.value);
+  }
+
+  function handleSelect(player: PlayerSearchResult): void {
+    onSelect(player);
+    setQuery("");
   }
 
   if (selected) {
@@ -62,23 +63,16 @@ function PlayerPicker({ label, selected, onSelect, onClear }: Props) {
       <input
         type="text"
         value={query}
-        onChange={(e) => handleChange(e.target.value)}
-        placeholder="Search player..."
+        onChange={handleQueryChange}
+        placeholder="Search Player..."
       />
       {loading && <p className="status-message">Searching...</p>}
       {error && <p className="error">{error}</p>}
       {suggestions.length > 0 && (
         <ul className="player-picker__suggestions">
-          {suggestions.map((player) => (
+          {suggestions.map((player: PlayerSearchResult) => (
             <li key={player.player_id}>
-              <button
-                type="button"
-                onClick={() => {
-                  onSelect(player);
-                  setQuery("");
-                  setSuggestions([]);
-                }}
-              >
+              <button type="button" onClick={(): void => handleSelect(player)}>
                 {player.name} <span>({player.position})</span>
               </button>
             </li>

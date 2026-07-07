@@ -1,8 +1,8 @@
 export const METRIC_LABELS: Record<string, string> = {
+  matches_played: "Games",
+  minutes_played: "Minutes",
   goals: "Goals",
   assists: "Assists",
-  minutes_played: "Minutes",
-  matches_played: "Games",
   goal_involvements: "Goals + Assists",
 };
 

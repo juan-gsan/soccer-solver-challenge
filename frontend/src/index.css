@@ -319,3 +319,25 @@ body {
 .evolution-page__header h1 {
   margin-bottom: 0.1rem;
 }
+
+.error-boundary {
+  max-width: 500px;
+  margin: 4rem auto;
+  text-align: center;
+}
+.error-boundary button {
+  margin-top: 1rem;
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  border: none;
+  background: #22c55e;
+  color: #0f172a;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.not-found {
+  max-width: 500px;
+  margin: 4rem auto;
+  text-align: center;
+}

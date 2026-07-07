@@ -1,49 +1,56 @@
-import { useEffect, useState } from "react";
-import { apiGet, ApiError } from "../api/client";
+import type { ChangeEvent, FormEvent, JSX } from "react";
+import { useState } from "react";
+import { useApiGet } from "../hooks/useApiGet";
+import { useLazyApiGet } from "../hooks/useLazyApiGet";
 import type { PlayerSearchResponse } from "../types/player";
 import { METRIC_LABELS, metricLabel } from "../constants/metrics";
 import PlayerCard from "../components/PlayerCard";
 
-const TOP_METRIC_OPTIONS = Object.keys(METRIC_LABELS);
+const TOP_METRIC_OPTIONS: string[] = Object.keys(METRIC_LABELS);
 
-function PlayerSearchPage() {
-  const [query, setQuery] = useState("");
-  const [results, setResults] = useState<PlayerSearchResponse | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [hasSearched, setHasSearched] = useState(false);
-  const [topMetric, setTopMetric] = useState("matches_played");
+function PlayerSearchPage(): JSX.Element {
+  const [query, setQuery] = useState<string>("");
+  const [hasSearched, setHasSearched] = useState<boolean>(false);
+  const [topMetric, setTopMetric] = useState<string>("matches_played");
+  const [validationError, setValidationError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (hasSearched) return;
-    apiGet<PlayerSearchResponse>(`/players/top?metric=${topMetric}&limit=5`)
-      .then(setResults)
-      .catch(() => {});
-  }, [topMetric, hasSearched]);
+  const { data: topPlayers } = useApiGet<PlayerSearchResponse>(
+    !hasSearched ? `/players/top?metric=${topMetric}&limit=5` : null,
+  );
 
-  async function handleSearch(e: React.FormEvent) {
-    e.preventDefault();
+  const {
+    data: searchResults,
+    loading,
+    error: searchError,
+    execute: runSearch,
+  } = useLazyApiGet<PlayerSearchResponse>();
+
+  async function handleSearch(
+    event: FormEvent<HTMLFormElement>,
+  ): Promise<void> {
+    event.preventDefault();
     if (query.trim().length < 2) {
-      setError("Write down at least two characters");
+      setValidationError("Write down at least two characters");
       return;
     }
-    setLoading(true);
-    setError(null);
+    setValidationError(null);
     setHasSearched(true);
-    try {
-      const data = await apiGet<PlayerSearchResponse>(
-        `/players/search?name=${encodeURIComponent(query.trim())}`,
-      );
-      setResults(data);
-    } catch (err) {
-      setError(
-        err instanceof ApiError ? err.message : "Error searching player",
-      );
-      setResults(null);
-    } finally {
-      setLoading(false);
-    }
+    await runSearch(`/players/search?name=${encodeURIComponent(query.trim())}`);
   }
+
+  function handleQueryChange(event: ChangeEvent<HTMLInputElement>): void {
+    setQuery(event.target.value);
+  }
+
+  function handleMetricChange(event: ChangeEvent<HTMLSelectElement>): void {
+    setTopMetric(event.target.value);
+  }
+
+  const results: PlayerSearchResponse | null = hasSearched
+    ? searchResults
+    : topPlayers;
+  const error: string | null =
+    validationError ?? (hasSearched ? searchError : null);
 
   return (
     <div className="search-page">
@@ -52,7 +59,7 @@ function PlayerSearchPage() {
         <input
           type="text"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={handleQueryChange}
           placeholder="Player Name (ex. Haaland)"
         />
         <button type="submit" disabled={loading}>
@@ -67,17 +74,14 @@ function PlayerSearchPage() {
           <div className="results__header">
             <p className="results__count">
               {hasSearched
-                ? `${results.count} results${results.count !== 1 ? "s" : ""} for "${results.query}"`
+                ? `${results.count} result${results.count !== 1 ? "s" : ""} for "${results.query}"`
                 : "Top Players"}
             </p>
             {!hasSearched && (
               <label className="top-metric-select">
                 by
-                <select
-                  value={topMetric}
-                  onChange={(e) => setTopMetric(e.target.value)}
-                >
-                  {TOP_METRIC_OPTIONS.map((metric) => (
+                <select value={topMetric} onChange={handleMetricChange}>
+                  {TOP_METRIC_OPTIONS.map((metric: string) => (
                     <option key={metric} value={metric}>
                       {metricLabel(metric)}
                     </option>
