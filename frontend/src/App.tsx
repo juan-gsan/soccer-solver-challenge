@@ -19,7 +19,7 @@ function App() {
             path="/players/:playerId/evolution"
             element={<PlayerEvolutionPage />}
           />
-          <Route path="/compare" element={<ComparePage />} />
+          <Route path="/compare" element={<ComparePage key={location.key} />} />
         </Routes>
       </main>
     </div>
