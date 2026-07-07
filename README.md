@@ -108,6 +108,7 @@ While the docker environment for the App is up and running, open a new terminal 
 ```bash
 cd docker
 docker compose exec backend pytest -v
+docker compose exec frontend npm test
 ```
 
 ## What I'd improve with more time
@@ -128,8 +129,7 @@ docker compose exec backend pytest -v
 - Debounce the player search input (`PlayerPicker`) so it doesn't fire a
   request on every keystroke.
 
-- End-to-end frontend tests (Playwright/Cypress); today there are only
-  backend tests.
+- End-to-end tests (Playwright/Cypress); today there are only unitary tests.
 
 - Move to a real database, I am using a csv file for this challenge, we
   need to connect to a real DB, Clickhouse would be a good option in my opinion.

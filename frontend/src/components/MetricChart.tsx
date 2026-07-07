@@ -18,7 +18,7 @@ interface Props {
   seasons: SeasonEvolution[];
 }
 
-interface ChartRow {
+export interface ChartRow {
   season: string;
   player: number;
   positionAverage: number | null;
@@ -38,7 +38,7 @@ interface ChartTooltipProps {
   label?: string;
 }
 
-function buildChartData(
+export function buildChartData(
   metric: string,
   seasons: SeasonEvolution[],
 ): ChartRow[] {

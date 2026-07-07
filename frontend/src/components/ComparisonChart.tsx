@@ -20,7 +20,7 @@ interface Props {
   seasonsB: SeasonEvolution[];
 }
 
-interface ComparisonRow {
+export interface ComparisonRow {
   season: string;
   playerA: number | null;
   playerB: number | null;
@@ -34,7 +34,7 @@ interface ComparisonTooltipProps {
   nameB: string;
 }
 
-function buildComparisonData(
+export function buildComparisonData(
   metric: string,
   seasonsA: SeasonEvolution[],
   seasonsB: SeasonEvolution[],
@@ -60,7 +60,7 @@ function buildComparisonData(
   });
 }
 
-function consistencyScore(values: Array<number | null>): number | null {
+export function consistencyScore(values: Array<number | null>): number | null {
   const nums = values.filter((v): v is number => v !== null);
   if (nums.length < 2) return null;
   const mean = nums.reduce((a, b) => a + b, 0) / nums.length;
