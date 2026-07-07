@@ -44,7 +44,7 @@ soccer-solver-challenge/
 
 ## Requirements
 
-Docker Desktop.
+Install Docker Desktop and open it for the docker engine to start
 
 ```bash
 cp .env.example .env
@@ -75,7 +75,7 @@ docker compose exec backend pytest -v
 docker compose exec frontend npm test
 ```
 
-## The normalisation problem (core of the challenge)
+## The normalisation problem
 
 ### Method chosen: percentile normalised by position and season
 
