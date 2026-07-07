@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { apiGet, ApiError } from "../api/client";
 import type { PlayerSearchResponse } from "../types/player";
 import PlayerCard from "../components/PlayerCard";
@@ -8,24 +8,30 @@ function PlayerSearchPage() {
   const [results, setResults] = useState<PlayerSearchResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hasSearched, setHasSearched] = useState(false);
+
+  useEffect(() => {
+    apiGet<PlayerSearchResponse>("/players/top?limit=5")
+      .then(setResults)
+      .catch(() => {});
+  }, []);
 
   async function handleSearch(e: React.FormEvent) {
     e.preventDefault();
     if (query.trim().length < 2) {
-      setError("Please write at least two characters");
+      setError("Write down at least two characters");
       return;
     }
     setLoading(true);
     setError(null);
+    setHasSearched(true);
     try {
       const data = await apiGet<PlayerSearchResponse>(
         `/players/search?name=${encodeURIComponent(query.trim())}`,
       );
       setResults(data);
     } catch (err) {
-      setError(
-        err instanceof ApiError ? err.message : "Error searching players",
-      );
+      setError(err instanceof ApiError ? err.message : "Error searching");
       setResults(null);
     } finally {
       setLoading(false);
@@ -40,7 +46,7 @@ function PlayerSearchPage() {
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Player Name (example: Haaland)"
+          placeholder="Player Name (ex. Haaland)"
         />
         <button type="submit" disabled={loading}>
           {loading ? "Searching..." : "Search"}
@@ -52,8 +58,9 @@ function PlayerSearchPage() {
       {results && (
         <div className="results">
           <p className="results__count">
-            {results.count} result{results.count !== 1 ? "s" : ""} for "
-            {results.query}"
+            {hasSearched
+              ? `${results.count} results${results.count !== 1 ? "s" : ""} for "${results.query}"`
+              : "Top Players per appearances"}
           </p>
           {results.results.map((player) => (
             <PlayerCard key={player.player_id} player={player} />

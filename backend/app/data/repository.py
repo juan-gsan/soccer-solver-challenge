@@ -9,20 +9,16 @@ import pandas as pd
 
 DATA_DIR = Path(__file__).resolve().parents[2] / "data" / "raw"
 
+SEASON_METRICS: list[str] = ["goals", "assists", "minutes_played", "matches_played", "goal_involvements"]
+
 
 def _season_start_year(dates: pd.Series) -> pd.Series:
-    """Vectorized: maps each timestamp to the year its football season started.
-
-    Seasons are assumed to run July -> June (European convention). A game played
-    in March 2023 belongs to the 2022/2023 season, so its start year is 2022.
-    """
     years = dates.dt.year
     months = dates.dt.month
     return years.where(months >= 7, years - 1)
 
 
 def _season_label(start_year: int) -> str:
-    """Formats a season start year as 'YYYY/YYYY+1', e.g. 2022 -> '2022/2023'."""
     return f"{start_year}/{start_year + 1}"
 
 
@@ -37,17 +33,14 @@ class PlayerSummary:
 
 
 class PlayerRepository:
-    """Abstracts access to the player / appearance dataset.
-
-    This is the ONLY place that knows about CSV files and column names. Every
-    other layer (routers, services) talks to this class, so swapping the CSVs
-    for a real database later only means re-implementing this class.
-    """
 
     def __init__(self, data_dir: Path = DATA_DIR) -> None:
         self._players: pd.DataFrame = self._load_players(data_dir)
         self._appearances: pd.DataFrame = self._load_appearances(data_dir)
         self._clubs: Optional[pd.DataFrame] = self._load_clubs(data_dir)
+        self._season_stats: pd.DataFrame = self._build_season_stats(
+            self._appearances, self._players
+        )
 
     @staticmethod
     def _load_players(data_dir: Path) -> pd.DataFrame:
@@ -85,6 +78,34 @@ class PlayerRepository:
                 return str(match.iloc[0]["name"])
         return "Unknown"
 
+    @staticmethod
+    def _build_season_stats(appearances: pd.DataFrame, players: pd.DataFrame) -> pd.DataFrame:
+        merged = appearances.merge(
+            players[["player_id", "position", "sub_position"]], on="player_id", how="left"
+        )
+        grouped = (
+            merged.groupby(["player_id", "season"], as_index=False)
+            .agg(
+                goals=("goals", "sum"),
+                assists=("assists", "sum"),
+                minutes_played=("minutes_played", "sum"),
+                matches_played=("game_id", "count"),
+                position=("position", "first"),
+                sub_position=("sub_position", "first"),
+            )
+        )
+        grouped["goal_involvements"] = grouped["goals"] + grouped["assists"]
+        return grouped
+
+    def get_player_season_stats(self, player_id: int) -> pd.DataFrame:
+        rows = self._season_stats[self._season_stats["player_id"] == player_id]
+        return rows.sort_values("season")
+
+    def get_position_season_population(self, position: str, season: str) -> pd.DataFrame:
+        return self._season_stats[
+            (self._season_stats["position"] == position) & (self._season_stats["season"] == season)
+        ]
+
     def _seasons_for_player(self, player_id: int) -> list[str]:
         player_apps = self._appearances[self._appearances["player_id"] == player_id]
         if player_apps.empty:
@@ -111,8 +132,6 @@ class PlayerRepository:
         matches = matches.head(limit)
 
         summaries = [self._row_to_summary(row) for _, row in matches.iterrows()]
-        # Players with zero recorded appearances have nothing to analyse, so we
-        # don't surface them in search results.
         return [s for s in summaries if s.available_seasons]
 
     def get_player(self, player_id: int) -> Optional[PlayerSummary]:
@@ -121,8 +140,14 @@ class PlayerRepository:
             return None
         return self._row_to_summary(row.iloc[0])
 
+    def get_top_players_by_appearances(self, limit: int = 5) -> list[PlayerSummary]:
+        totals = self._season_stats.groupby("player_id")["matches_played"].sum()
+        top_ids = totals.sort_values(ascending=False).head(limit).index.tolist()
+
+        summaries = [self.get_player(pid) for pid in top_ids]
+        return [s for s in summaries if s is not None]
+
 
 @functools.lru_cache(maxsize=1)
 def get_player_repository() -> PlayerRepository:
-    """Process-wide singleton so the CSVs are parsed only once, not per-request."""
     return PlayerRepository()

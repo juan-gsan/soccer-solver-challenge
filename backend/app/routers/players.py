@@ -27,6 +27,12 @@ def search_players(
     results = [_to_response_model(m) for m in matches]
     return PlayerSearchResponse(query=name, count=len(results), results=results)
 
+@router.get("/top", response_model=PlayerSearchResponse)
+def get_top_players(limit: int = Query(5, ge=1, le=50)) -> PlayerSearchResponse:
+    repo = get_player_repository()
+    top = repo.get_top_players_by_appearances(limit=limit)
+    results = [_to_response_model(p) for p in top]
+    return PlayerSearchResponse(query="", count=len(results), results=results)
 
 @router.get("/{player_id}", response_model=PlayerSearchResult)
 def get_player(player_id: int) -> PlayerSearchResult:
