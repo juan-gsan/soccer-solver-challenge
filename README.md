@@ -65,6 +65,16 @@ python scripts/download_data.py    # pulls the full dataset from Kaggle (kaggleh
 python scripts/filter_dataset.py   # shrinks it to a size that fits in a GitHub repo
 ```
 
+## Tests: 100% Coverage
+
+While the docker environment for the App is up and running, open a new terminal and run:
+
+```bash
+cd docker
+docker compose exec backend pytest -v
+docker compose exec frontend npm test
+```
+
 ## The normalisation problem (core of the challenge)
 
 ### Method chosen: percentile normalised by position and season
@@ -100,16 +110,6 @@ I have created tooltips always visible in the chart and comparison views to expl
 **Source:** [Football Data from Transfermarkt](https://www.kaggle.com/datasets/davidcariboo/player-scores)
 
 **Filtered to make it committable to GitHub**
-
-## Tests: 100% Coverage
-
-While the docker environment for the App is up and running, open a new terminal and run:
-
-```bash
-cd docker
-docker compose exec backend pytest -v
-docker compose exec frontend npm test
-```
 
 ## What I'd improve with more time
 
