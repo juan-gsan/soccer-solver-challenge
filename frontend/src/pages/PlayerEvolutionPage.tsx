@@ -43,7 +43,7 @@ function PlayerEvolutionPage() {
     );
   }
 
-  if (loading) return <p className="status-message">Loading evolution...</p>;
+  if (loading) return <p className="status-message">Cargando evolución...</p>;
   if (error) return <p className="error">{error}</p>;
   if (!data) return null;
 
@@ -55,7 +55,7 @@ function PlayerEvolutionPage() {
         </Link>
         <h1>{data.name}</h1>
         <p>
-          There is only data for one season on this player — not enough history
+          There is only data for one season on this player, not enough history
           to show evolution
         </p>
       </div>
@@ -67,10 +67,17 @@ function PlayerEvolutionPage() {
       <Link to="/" className="back-link">
         ← Back to Player Search
       </Link>
-      <h1>{data.name}</h1>
-      <p className="evolution-page__meta">
-        {data.position} ({data.sub_position})
-      </p>
+      <div className="evolution-page__header">
+        <div>
+          <h1>{data.name}</h1>
+          <p className="evolution-page__meta">
+            {data.position} ({data.sub_position})
+          </p>
+        </div>
+        <Link to={`/compare?playerA=${data.player_id}`} className="button">
+          Compare with another player
+        </Link>
+      </div>
       <p className="evolution-page__note">
         Comparisons are based on the average of players in the same position for
         each season. Trends are calculated based on normalised avg %, not based
