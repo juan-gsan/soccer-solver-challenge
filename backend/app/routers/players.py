@@ -1,7 +1,13 @@
 from fastapi import APIRouter, HTTPException, Query
 
-from app.data.repository import PlayerSummary, get_player_repository
+from app.data.repository import PlayerSummary, SEASON_METRICS, get_player_repository
+from app.models.evolution import (
+    MetricPointResponse,
+    PlayerEvolutionResponse,
+    SeasonEvolutionResponse,
+)
 from app.models.player import PlayerSearchResponse, PlayerSearchResult
+from app.services.evolution import build_player_evolution
 
 router = APIRouter(prefix="/players", tags=["players"])
 
@@ -27,12 +33,25 @@ def search_players(
     results = [_to_response_model(m) for m in matches]
     return PlayerSearchResponse(query=name, count=len(results), results=results)
 
+
 @router.get("/top", response_model=PlayerSearchResponse)
-def get_top_players(limit: int = Query(5, ge=1, le=50)) -> PlayerSearchResponse:
+def get_top_players(
+    metric: str = Query(
+        "matches_played",
+        description=f"Metric to rank by. Available: {', '.join(SEASON_METRICS)}",
+    ),
+    limit: int = Query(5, ge=1, le=50),
+) -> PlayerSearchResponse:
+    if metric not in SEASON_METRICS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unknown metric '{metric}'. Available: {', '.join(SEASON_METRICS)}",
+        )
     repo = get_player_repository()
-    top = repo.get_top_players_by_appearances(limit=limit)
+    top = repo.get_top_players_by_metric(metric, limit=limit)
     results = [_to_response_model(p) for p in top]
     return PlayerSearchResponse(query="", count=len(results), results=results)
+
 
 @router.get("/{player_id}", response_model=PlayerSearchResult)
 def get_player(player_id: int) -> PlayerSearchResult:
@@ -41,3 +60,51 @@ def get_player(player_id: int) -> PlayerSearchResult:
     if player is None:
         raise HTTPException(status_code=404, detail=f"Player {player_id} not found")
     return _to_response_model(player)
+
+
+@router.get("/{player_id}/evolution", response_model=PlayerEvolutionResponse)
+def get_player_evolution(
+    player_id: int,
+    metrics: str = Query(
+        ",".join(SEASON_METRICS),
+        description=f"Comma-separated metrics to include. Available: {', '.join(SEASON_METRICS)}",
+    ),
+) -> PlayerEvolutionResponse:
+    repo = get_player_repository()
+    player = repo.get_player(player_id)
+    if player is None:
+        raise HTTPException(status_code=404, detail=f"Player {player_id} not found")
+
+    requested_metrics = [m.strip() for m in metrics.split(",") if m.strip()]
+    invalid = [m for m in requested_metrics if m not in SEASON_METRICS]
+    if invalid:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unknown metric(s): {', '.join(invalid)}. Available: {', '.join(SEASON_METRICS)}",
+        )
+
+    seasons = build_player_evolution(repo, player_id, requested_metrics)
+
+    return PlayerEvolutionResponse(
+        player_id=player.player_id,
+        name=player.name,
+        position=player.position,
+        sub_position=player.sub_position,
+        available_metrics=SEASON_METRICS,
+        seasons=[
+            SeasonEvolutionResponse(
+                season=s.season,
+                metrics=[
+                    MetricPointResponse(
+                        metric=m.metric,
+                        player_value=m.player_value,
+                        position_average=m.position_average,
+                        percentile=m.percentile,
+                        trend=m.trend,
+                    )
+                    for m in s.metrics
+                ],
+            )
+            for s in seasons
+        ],
+    )

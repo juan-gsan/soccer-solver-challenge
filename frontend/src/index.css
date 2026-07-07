@@ -109,3 +109,109 @@ body {
   font-weight: 600;
   white-space: nowrap;
 }
+
+.back-link {
+  color: #22c55e;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.evolution-page {
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+.evolution-page__meta {
+  color: #94a3b8;
+  margin: 0.25rem 0 1rem;
+}
+.evolution-page__note {
+  color: #64748b;
+  font-size: 0.85rem;
+  margin-bottom: 1.5rem;
+  max-width: 600px;
+}
+
+.metric-selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding: 0.75rem 1rem;
+  background: #1e293b;
+  border-radius: 8px;
+}
+.metric-selector__item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  gap: 1.5rem;
+}
+
+.metric-chart {
+  background: #1e293b;
+  border-radius: 8px;
+  padding: 1rem;
+}
+.metric-chart__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+.metric-chart__header h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.trend-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid;
+  white-space: nowrap;
+}
+
+.chart-tooltip {
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8rem;
+}
+.chart-tooltip__season {
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.status-message {
+  color: #94a3b8;
+}
+.results__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+.top-metric-select {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  color: #94a3b8;
+}
+.top-metric-select select {
+  background: #1e293b;
+  color: #f8fafc;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  padding: 0.3rem 0.5rem;
+}
