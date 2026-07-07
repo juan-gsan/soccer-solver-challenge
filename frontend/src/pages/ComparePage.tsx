@@ -8,7 +8,7 @@ import PlayerPicker from "../components/PlayerPicker";
 import MetricSelector from "../components/MetricSelector";
 import ComparisonChart from "../components/ComparisonChart";
 
-const DEFAULT_METRIC_COUNT = 1;
+const DEFAULT_METRIC_COUNT = 3;
 
 function ComparePage(): JSX.Element {
   const [searchParams] = useSearchParams();

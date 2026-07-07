@@ -74,7 +74,7 @@ function PlayerSearchPage(): JSX.Element {
           <div className="results__header">
             <p className="results__count">
               {hasSearched
-                ? `${results.count} results${results.count !== 1 ? "s" : ""} for "${results.query}"`
+                ? `${results.count} result${results.count !== 1 ? "s" : ""} for "${results.query}"`
                 : "Top Players"}
             </p>
             {!hasSearched && (

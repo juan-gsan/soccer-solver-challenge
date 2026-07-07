@@ -5,7 +5,7 @@ import { usePlayerEvolution } from "../hooks/usePlayerEvolution";
 import MetricChart from "../components/MetricChart";
 import MetricSelector from "../components/MetricSelector";
 
-const DEFAULT_METRIC_COUNT = 1;
+const DEFAULT_METRIC_COUNT = 3;
 
 interface RouteParams extends Record<string, string | undefined> {
   playerId: string;
