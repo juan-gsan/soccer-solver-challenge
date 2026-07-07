@@ -133,3 +133,6 @@ docker compose exec backend pytest -v
 
 - Move to a real database, I am using a csv file for this challenge, we
   need to connect to a real DB, Clickhouse would be a good option in my opinion.
+
+- Make the selection for comparison between players more selective, for example,
+  it makes not much sense to compare goals of a forward against a defender.
