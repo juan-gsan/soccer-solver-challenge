@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
 import { apiGet, ApiError } from "../api/client";
 import type { PlayerSearchResponse } from "../types/player";
+import { METRIC_LABELS, metricLabel } from "../constants/metrics";
 import PlayerCard from "../components/PlayerCard";
+
+const TOP_METRIC_OPTIONS = Object.keys(METRIC_LABELS);
 
 function PlayerSearchPage() {
   const [query, setQuery] = useState("");
@@ -9,12 +12,14 @@ function PlayerSearchPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
+  const [topMetric, setTopMetric] = useState("matches_played");
 
   useEffect(() => {
-    apiGet<PlayerSearchResponse>("/players/top?limit=5")
+    if (hasSearched) return;
+    apiGet<PlayerSearchResponse>(`/players/top?metric=${topMetric}&limit=5`)
       .then(setResults)
       .catch(() => {});
-  }, []);
+  }, [topMetric, hasSearched]);
 
   async function handleSearch(e: React.FormEvent) {
     e.preventDefault();
@@ -31,7 +36,9 @@ function PlayerSearchPage() {
       );
       setResults(data);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Error searching");
+      setError(
+        err instanceof ApiError ? err.message : "Error searching player",
+      );
       setResults(null);
     } finally {
       setLoading(false);
@@ -57,11 +64,28 @@ function PlayerSearchPage() {
 
       {results && (
         <div className="results">
-          <p className="results__count">
-            {hasSearched
-              ? `${results.count} results${results.count !== 1 ? "s" : ""} for "${results.query}"`
-              : "Top Players per appearances"}
-          </p>
+          <div className="results__header">
+            <p className="results__count">
+              {hasSearched
+                ? `${results.count} results${results.count !== 1 ? "s" : ""} for "${results.query}"`
+                : "Top Players"}
+            </p>
+            {!hasSearched && (
+              <label className="top-metric-select">
+                by
+                <select
+                  value={topMetric}
+                  onChange={(e) => setTopMetric(e.target.value)}
+                >
+                  {TOP_METRIC_OPTIONS.map((metric) => (
+                    <option key={metric} value={metric}>
+                      {metricLabel(metric)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+          </div>
           {results.results.map((player) => (
             <PlayerCard key={player.player_id} player={player} />
           ))}

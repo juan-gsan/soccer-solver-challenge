@@ -140,8 +140,8 @@ class PlayerRepository:
             return None
         return self._row_to_summary(row.iloc[0])
 
-    def get_top_players_by_appearances(self, limit: int = 5) -> list[PlayerSummary]:
-        totals = self._season_stats.groupby("player_id")["matches_played"].sum()
+    def get_top_players_by_metric(self, metric: str, limit: int = 5) -> list[PlayerSummary]:
+        totals = self._season_stats.groupby("player_id")[metric].sum()
         top_ids = totals.sort_values(ascending=False).head(limit).index.tolist()
 
         summaries = [self.get_player(pid) for pid in top_ids]
