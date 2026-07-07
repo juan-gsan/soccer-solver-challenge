@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from app.routers import players
 
 app = FastAPI(
     title="SoccerSolver API",
@@ -33,3 +34,4 @@ def health_check() -> HealthResponse:
     """Backend Health check"""
     return HealthResponse(status="ok", message="Backend up and running")
 
+app.include_router(players.router)

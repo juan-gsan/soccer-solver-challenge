@@ -1,6 +1,11 @@
 body {
   margin: 0;
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    Segoe UI,
+    Roboto,
+    sans-serif;
   background: #0f172a;
   color: #f8fafc;
 }
@@ -24,4 +29,83 @@ body {
 .status {
   font-size: 0.9rem;
   color: #94a3b8;
+}
+
+.navbar {
+  display: flex;
+  gap: 1.5rem;
+  padding: 1rem 2rem;
+  background: #1e293b;
+}
+.navbar a {
+  color: #f8fafc;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.search-page {
+  max-width: 700px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+.search-form {
+  display: flex;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+.search-form input {
+  flex: 1;
+  padding: 0.6rem;
+  border-radius: 6px;
+  border: 1px solid #334155;
+  background: #1e293b;
+  color: #f8fafc;
+}
+.search-form button {
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  border: none;
+  background: #22c55e;
+  color: #0f172a;
+  font-weight: 700;
+  cursor: pointer;
+}
+.search-form button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.error {
+  color: #f87171;
+}
+.results__count {
+  color: #94a3b8;
+  margin-bottom: 1rem;
+}
+
+.player-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #1e293b;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+}
+.player-card__meta {
+  color: #94a3b8;
+  margin: 0.25rem 0;
+}
+.player-card__seasons {
+  font-size: 0.85rem;
+  color: #64748b;
+}
+.button {
+  background: #22c55e;
+  color: #0f172a;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 600;
+  white-space: nowrap;
 }
