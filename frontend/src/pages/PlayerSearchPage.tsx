@@ -11,7 +11,7 @@ const TOP_METRIC_OPTIONS: string[] = Object.keys(METRIC_LABELS);
 function PlayerSearchPage(): JSX.Element {
   const [query, setQuery] = useState<string>("");
   const [hasSearched, setHasSearched] = useState<boolean>(false);
-  const [topMetric, setTopMetric] = useState<string>("matches_played");
+  const [topMetric, setTopMetric] = useState<string>("goals");
   const [validationError, setValidationError] = useState<string | null>(null);
 
   const { data: topPlayers } = useApiGet<PlayerSearchResponse>(
